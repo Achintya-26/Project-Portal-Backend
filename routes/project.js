@@ -6,8 +6,14 @@ const path = require('path');
 const router = express.Router();
 
 // Get all
+// router.get('/', async (req, res) => {
+//   const projects = await queries.getAllProjects();
+//   res.json(projects);
+// });
+
 router.get('/', async (req, res) => {
-  const projects = await queries.getAllProjects();
+  const search = req.query.q?.toLowerCase() || '';
+  const projects = await queries.searchProjectsByTopic(search);
   res.json(projects);
 });
 
@@ -16,6 +22,22 @@ router.get('/me', async (req, res) => {
   const projects = await queries.getProjectsByUser(req.user.id);
   res.json(projects);
 });
+
+router.get('/user/:id', async (req, res) => {
+  const projects = await queries.getProjectsByUser(req.params.id);
+  res.json(projects);
+});
+
+router.get('/:id', async (req, res) => {
+  const resData = await queries.getProjectById(req.params.id);
+
+  if (resData.rows.length === 0) {
+    return res.status(404).json({ error: 'Project not found' });
+  }
+
+  res.json(resData.rows[0]);
+});
+
 
 // Create
 router.post('/', async (req, res) => {

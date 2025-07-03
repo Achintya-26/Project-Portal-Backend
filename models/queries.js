@@ -33,5 +33,35 @@ module.exports = {
   getProjectsByUser: async (user_id) => {
     const res = await db.query(`SELECT * FROM projects WHERE user_id=$1 ORDER BY id DESC`, [user_id]);
     return res.rows;
+  },
+  searchProjectsByTopic: async (search) => {
+    if (!search) {
+      const res = await db.query(`
+      SELECT p.*, u.username 
+      FROM projects p 
+      JOIN users u ON p.user_id = u.id 
+      ORDER BY p.id DESC
+    `);
+      return res.rows;
+    }
+
+    const res = await db.query(`
+    SELECT p.*, u.username 
+    FROM projects p 
+    JOIN users u ON p.user_id = u.id 
+    WHERE LOWER(p.topic) LIKE $1 
+    ORDER BY p.id DESC
+  `, [`%${search}%`]);
+
+    return res.rows;
+  },
+
+  getProjectById: async (id) => {
+    const resData = await db.query(`
+    SELECT p.*, u.username FROM projects p
+    JOIN users u ON p.user_id = u.id
+    WHERE p.id = ${id}
+  `);
+    return resData;
   }
 };
