@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const queries = require('../models/queries');
 const bcrypt = require('bcrypt');
+const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -31,6 +32,20 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// Get current user profile
+router.get('/profile', authMiddleware, async (req, res) => {
+  try {
+    const user = await queries.getUserById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
